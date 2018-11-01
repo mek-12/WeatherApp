@@ -14,6 +14,7 @@ public class OpenWeatherMap {
     private int id;
     private String name;
     private int cod;
+    private int visibility;
 
     public OpenWeatherMap()
     {
@@ -130,4 +131,8 @@ public class OpenWeatherMap {
     public void setCod(int cod) {
         this.cod = cod;
     }
+
+    public int getVisibility(){ return visibility; }
+
+    public void setVisibility(int visibility){ this.visibility = visibility; }
 }

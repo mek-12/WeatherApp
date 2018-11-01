@@ -12,11 +12,18 @@ import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.weatherapp.Common.Common;
 import com.example.weatherapp.Helper.Helper;
 import com.example.weatherapp.Model.OpenWeatherMap;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.squareup.picasso.Picasso;
+
+import java.lang.reflect.Type;
 
 import static android.webkit.ConsoleMessage.MessageLevel.LOG;
 
@@ -69,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Location location = locationManager.getLastKnownLocation(provider);
 
         if (location == null) {
-            LOG.e("TAG", "No Location");
+            Log.e("TAG", "No Location");
         }
 
     }
@@ -78,6 +85,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onPause() {
         super.onPause();
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{
+                    Manifest.permission.INTERNET,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.ACCESS_NETWORK_STATE,
+                    Manifest.permission.SYSTEM_ALERT_WINDOW
+            }, MY_PERMISSION);
+        }
         locationManager.removeUpdates(this);
     }
 
@@ -144,6 +161,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
+
+            if(s.contains("Error: Not found city")){
+                pd.dismiss();
+                return;
+            }
+
+            Gson gson = new Gson();
+            Type mType = new TypeToken<OpenWeatherMap>(){}.getType();
+
+            openWeatherMap  = gson.fromJson(s,mType);
+
+            pd.dismiss();
+
+            txtCity.setText(String.format("%s,%s",openWeatherMap.getName(),openWeatherMap.getSys().getCountry()));
+            txtLastUpdate.setText(String.format("Last Updated: %s", Common.getDateNow()));
+            txtDescription.setText(String.format("%s",openWeatherMap.getWeatherList().get(0).getDescription()));
+            txtHunidity.setText(String.format("%d%%",openWeatherMap.getMain().getHumidity()));
+            txtTime.setText(String.format("%s/%s",Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunrise()), Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunset())));
+            txtCelsius.setText(String.format("%.2f °F",openWeatherMap.getMain().getTemp()));
+
+            Picasso.get().load(Common.getImage(openWeatherMap.getWeatherList().get(0).getIcon())).into(imageView);
         }
     }
 }

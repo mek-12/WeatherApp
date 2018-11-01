@@ -13,7 +13,7 @@ public class Common {
     @NonNull
     public static String apiRequest(String lat, String lng) {
         StringBuilder sb = new StringBuilder(API_LINK);
-        sb.append(String.format("?lat=%s&lon=%s&APPID=%s&units=metric",lat,lng));
+        sb.append(String.format("?lat=%s&lon=%s&appid=%s",lat,lng,API_KEY));
         return sb.toString();
     }
 
